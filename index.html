@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Meu Cronograma Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app"></div>
+<div id="modalBackdrop" class="backdrop hidden"></div>
+
+<div id="subjectModal" class="modal hidden">
+  <div class="modal-head"><div><span class="eyebrow">DISCIPLINA</span><h3 id="subjectModalTitle">Nova disciplina</h3></div><button class="icon-btn" data-close>×</button></div>
+  <div class="modal-body form-grid">
+    <input type="hidden" id="subjectId">
+    <label><span>Nome da disciplina</span><input id="subjectName" placeholder="Ex.: Farmacologia"></label>
+    <label><span>Professor(a)</span><input id="subjectTeacher" placeholder="Nome do professor"></label>
+    <label><span>Carga horária</span><input id="subjectWorkload" placeholder="Ex.: 60h"></label>
+    <label><span>Cor</span><select id="subjectColor"><option value="#6C5CE7">Roxo</option><option value="#2D7FF9">Azul</option><option value="#00A896">Verde</option><option value="#F0A23B">Laranja</option><option value="#E05263">Vermelho</option></select></label>
+  </div>
+  <div class="modal-actions"><button class="ghost" data-close>Cancelar</button><button id="saveSubject" class="primary">Salvar disciplina</button></div>
+</div>
+
+
+<div id="itemViewModal" class="modal hidden wide">
+  <div class="modal-head"><div><span class="eyebrow">DETALHES DA CÉLULA</span><h3 id="viewItemTitle">Informações da aula</h3></div><button class="icon-btn" data-close>×</button></div>
+  <div class="modal-body">
+    <div class="detail-grid">
+      <div class="detail-box"><span>Disciplina</span><b id="viewItemSubject"></b></div>
+      <div class="detail-box"><span>Data</span><b id="viewItemDate"></b></div>
+      <div class="detail-box"><span>Número da aula</span><b id="viewItemLesson"></b></div>
+      <div class="detail-box"><span>Tipo</span><b id="viewItemType"></b></div><div class="detail-box"><span>Status</span><b id="viewItemCompletion" class="completion-status pending">Pendente</b></div>
+    </div>
+    <div class="detail-section"><span>Conteúdo</span><p id="viewItemContent"></p></div>
+    <div class="detail-section"><span>Estratégias de ensino</span><p id="viewItemStrategy"></p></div>
+    <div class="detail-section"><span>Avaliação / Atividade</span><p id="viewItemAssessment"></p></div>
+    <div class="detail-section"><span>Bibliografia / Referência</span><p id="viewItemBibliography"></p></div>
+  </div>
+  <div class="modal-actions between"><button class="ghost" data-close>Fechar</button><div><button id="toggleCompleteFromView" class="complete-toggle">✓ Marcar como concluída</button><button id="editFromView" class="primary">✎ Editar célula</button></div></div>
+</div>
+
+<div id="itemModal" class="modal hidden wide">
+  <div class="modal-head"><div><span class="eyebrow">CÉLULA DO CRONOGRAMA</span><h3 id="itemModalTitle">Editar célula</h3></div><button class="icon-btn" data-close>×</button></div>
+  <div class="modal-body form-grid">
+    <input type="hidden" id="itemId">
+    <label><span>Número da aula</span><input id="itemLesson" placeholder="Ex.: 13-14-15"></label>
+    <label><span>Data</span><input id="itemDate" type="date"></label>
+    <label><span>Tipo</span><select id="itemType"><option value="aula">Aula</option><option value="atividade">Atividade</option><option value="prova">Prova</option><option value="seminario">Seminário</option><option value="evento">Evento</option><option value="tarefa">Tarefa</option></select></label>
+    <label><span>Pontos</span><input id="itemPoints" type="number" step="0.1" placeholder="Ex.: 3.0"></label>
+    <label class="full"><span>Conteúdo</span><textarea id="itemContent" placeholder="Conteúdo da aula"></textarea></label>
+    <label class="full"><span>Estratégias de ensino</span><textarea id="itemStrategy" placeholder="Metodologia/estratégias"></textarea></label>
+    <label class="full"><span>Avaliação</span><textarea id="itemAssessment" placeholder="Forma de avaliação"></textarea></label>
+    <label class="full"><span>Bibliografia</span><textarea id="itemBibliography" placeholder="Referências bibliográficas"></textarea></label>
+  </div>
+  <div class="modal-actions between"><button id="deleteItem" class="danger ghost-danger">Apagar célula</button><div><button class="ghost" data-close>Cancelar</button><button id="saveItem" class="primary">Salvar alterações</button></div></div>
+</div>
+
+<div id="importModal" class="modal hidden wide">
+  <div class="modal-head"><div><span class="eyebrow">IMPORTAÇÃO INTELIGENTE</span><h3>Adicionar / atualizar cronograma</h3></div><button class="icon-btn" data-close>×</button></div>
+  <div class="modal-body">
+    <label class="upload-box"><input type="file" id="scheduleFile" accept=".pdf,.docx,.pptx,.xlsx,.xls,.csv,.txt"><div class="upload-icon">⇧</div><strong id="selectedFileName">Selecione o arquivo do cronograma</strong><span>PDF, DOCX, PPTX, Excel, CSV ou TXT</span></label>
+    <div class="form-grid top-gap">
+      <label><span>Destino</span><select id="importMode"><option value="existing">Atualizar disciplina existente</option><option value="new">Criar nova disciplina</option></select></label>
+      <label id="existingSubjectWrap"><span>Disciplina</span><select id="importSubject"></select></label>
+      <label id="newImportSubjectWrap" class="full hidden"><span>Nome da nova disciplina</span><input id="newImportSubjectName" placeholder="Será sugerido pelo arquivo"></label>
+    </div>
+    <div class="info neutral"><b>Como a nova versão organiza os arquivos</b><br>A leitura agora segue a grade real da FARESI. DOCX é lido pela posição física das colunas em todas as tabelas do documento, inclusive quando a grade continua em outra página. PDF agora identifica primeiro as linhas verticais reais da tabela renderizada e usa essas divisórias como limites exatos das seis colunas. Cada registro só termina quando aparece uma nova data. Quebras de linha e de página permanecem dentro da mesma aula. Antes de salvar, confira a prévia completa.</div>
+    <div id="importResult" class="import-result hidden"></div>
+  </div>
+  <div class="modal-actions"><button class="ghost" data-close>Cancelar</button><button id="analyzeFile" class="primary">Ler e organizar arquivo</button></div>
+</div>
+
+<div id="confirmModal" class="modal small hidden">
+  <div class="modal-head"><div><span class="eyebrow danger-text">CONFIRMAÇÃO</span><h3 id="confirmTitle">Confirmar exclusão</h3></div><button class="icon-btn" data-close>×</button></div>
+  <div class="modal-body"><p id="confirmMessage" class="confirm-text"></p><div class="warning-box">Esta ação só será executada depois da sua confirmação.</div></div>
+  <div class="modal-actions"><button class="ghost" data-close>Cancelar</button><button id="confirmAction" class="danger">Sim, apagar</button></div>
+</div>
+
+<div id="profileModal" class="modal hidden">
+  <div class="modal-head"><div><span class="eyebrow">PERFIL</span><h3>Editar perfil</h3></div><button class="icon-btn" data-close>×</button></div>
+  <div class="modal-body form-grid"><label><span>Nome</span><input id="profileName"></label><label><span>Instituição</span><input id="profileInstitution"></label><label><span>Curso</span><input id="profileCourse"></label><label><span>Semestre</span><input id="profileSemester"></label><label><span>Período acadêmico</span><input id="profilePeriod"></label></div>
+  <div class="modal-actions"><button class="ghost" data-close>Cancelar</button><button id="saveProfile" class="primary">Salvar perfil</button></div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
