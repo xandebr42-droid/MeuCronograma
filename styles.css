@@ -1139,3 +1139,11 @@ html[data-theme="dark"] .mobilebar{
 .account-created-body .confirm-text{font-size:14px;margin:0 auto;max-width:360px}
 #accountCreatedModal .modal-actions{justify-content:center}
 #accountCreatedModal .modal-actions .primary{min-width:220px}
+
+/* V20.2 — feedback de autenticação acima da tela de login */
+body.auth-active .backdrop{z-index:1200}
+body.auth-active .modal{z-index:1210}
+#loginSuccessModal .modal-actions,
+#accountCreatedModal .modal-actions{justify-content:center}
+#loginSuccessModal .modal-actions .primary,
+#accountCreatedModal .modal-actions .primary{min-width:220px}

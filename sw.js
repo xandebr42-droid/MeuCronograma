@@ -1,4 +1,4 @@
-const CACHE_NAME="meu-cronograma-v20-confirmacao-2-auth-fix-1";
+const CACHE_NAME="meu-cronograma-v20-auth-final-20260905";
 const ASSETS=["./","./index.html","./styles.css","./app.js","./config.js","./manifest.webmanifest"];
 
 self.addEventListener("install",event=>{

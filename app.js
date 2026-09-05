@@ -3,7 +3,7 @@ const CURRENT_DATE="2026-08-21";
 const FULL_PSICO_ITEMS=[];
 const demo={profile:{full_name:"Aluno",institution:"FARESI",course:"Psicologia",semester:"3º semestre",academic_period:"2026.2"},subjects:[],items:[],files:[]};
 let supabaseClient=null,currentUser=null,cloudReady=false,cloudSaveTimer=null;
-let signupConfirmationActive=false,pendingSignupUser=null;
+let authFlowLock=null,pendingAuthUser=null,pendingAuthEmail="";
 let data=structuredClone(demo),view="hoje",selectedSubject=null,ui={filter:"all",subject:"all",search:""},cursor=new Date(2026,7,1),pendingConfirm=null,lastImportedSubjectId=null;
 const $=id=>document.getElementById(id);const uid=(p="id")=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const subject=id=>data.subjects.find(s=>s.id===id);const typeColor=t=>({aula:"#2D7FF9",atividade:"#E9982D",prova:"#D9485F",seminario:"#9B59B6",evento:"#7D8798",tarefa:"#188A67"})[t]||"#6557DF";const fmt=d=>new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short"}).format(new Date(d+"T12:00:00"));
 
@@ -631,6 +631,10 @@ function selectAuthTab(tab){
   $("loginForm").classList.toggle("hidden",!login);
   $("signupForm").classList.toggle("hidden",login);
   clearAuthMessages();
+  // Ao trocar manualmente de aba, não deixe um fluxo anterior bloquear o login.
+  authFlowLock=null;
+  pendingAuthUser=null;
+  pendingAuthEmail="";
 }
 function showAuth(){
   $("authScreen").classList.remove("hidden");
@@ -733,14 +737,21 @@ async function initializeAuth(){
   if(session?.user)await startAuthenticatedSession(session.user);
   else showAuth();
 
-  supabaseClient.auth.onAuthStateChange(async(event,session)=>{
+  supabaseClient.auth.onAuthStateChange((event,session)=>{
     if(session?.user){
-      if(signupConfirmationActive){
-        pendingSignupUser=session.user;
+      // Durante cadastro/login iniciado pelo usuário, a própria função do formulário
+      // controla a mensagem de sucesso e só libera o cronograma após confirmação.
+      if(authFlowLock){
+        pendingAuthUser=session.user;
         return;
       }
       if(!currentUser||currentUser.id!==session.user.id){
-        await startAuthenticatedSession(session.user);
+        // Evita executar consultas ao banco dentro do callback de Auth.
+        setTimeout(()=>startAuthenticatedSession(session.user).catch(err=>{
+          console.error("Falha ao iniciar sessão autenticada:",err);
+          showAuth();
+          setAuthMessage("loginMessage","Login confirmado, mas não foi possível carregar seu cronograma. Tente novamente.","error");
+        }),0);
       }
     }else{
       currentUser=null;
@@ -753,30 +764,51 @@ async function initializeAuth(){
 async function submitLogin(event){
   event.preventDefault();
   clearAuthMessages();
-  if(!supabaseClient)return;
+  if(!supabaseClient){
+    setAuthMessage("loginMessage","A conexão com o Supabase ainda não foi iniciada. Recarregue a página.","error");
+    return;
+  }
 
   const email=$("loginEmail").value.trim();
   const password=$("loginPassword").value;
   const btn=$("loginSubmit");
   btn.disabled=true;
   btn.textContent="Entrando…";
+  authFlowLock="login";
+  pendingAuthUser=null;
+  pendingAuthEmail=email;
 
-  const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+  try{
+    const {data:result,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
 
-  btn.disabled=false;
-  btn.textContent="Entrar no meu cronograma";
-
-  if(error){
-    setAuthMessage(
-      "loginMessage",
-      error.message==="Invalid login credentials"?"E-mail ou senha incorretos.":error.message
-    );
+    const user=result?.user||result?.session?.user||pendingAuthUser;
+    if(!user){
+      throw new Error("O Supabase confirmou o login, mas não retornou o usuário da sessão.");
+    }
+    pendingAuthUser=user;
+    showLoginSuccessConfirmation(user);
+  }catch(error){
+    authFlowLock=null;
+    pendingAuthUser=null;
+    pendingAuthEmail="";
+    const message=error?.message==="Invalid login credentials"
+      ?"E-mail ou senha incorretos."
+      :error?.message||"Não foi possível realizar o login.";
+    setAuthMessage("loginMessage",message,"error");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Entrar no meu cronograma";
   }
 }
+
 async function submitSignup(event){
   event.preventDefault();
   clearAuthMessages();
-  if(!supabaseClient)return;
+  if(!supabaseClient){
+    setAuthMessage("signupMessage","A conexão com o Supabase ainda não foi iniciada. Recarregue a página.","error");
+    return;
+  }
 
   const name=$("signupName").value.trim();
   const email=$("signupEmail").value.trim();
@@ -784,35 +816,76 @@ async function submitSignup(event){
   const confirm=$("signupPasswordConfirm").value;
 
   if(password!==confirm){
-    setAuthMessage("signupMessage","As senhas não coincidem.");
+    setAuthMessage("signupMessage","As senhas não coincidem.","error");
     return;
   }
 
   const btn=$("signupSubmit");
   btn.disabled=true;
   btn.textContent="Criando conta…";
+  authFlowLock="signup";
+  pendingAuthUser=null;
+  pendingAuthEmail=email;
 
-  signupConfirmationActive=true;
-  pendingSignupUser=null;
+  try{
+    const {data:result,error}=await supabaseClient.auth.signUp({
+      email,
+      password,
+      options:{data:{full_name:name}}
+    });
+    if(error)throw error;
 
-  const {data:result,error}=await supabaseClient.auth.signUp({
-    email,
-    password,
-    options:{data:{full_name:name}}
-  });
+    pendingAuthUser=result?.user||result?.session?.user||pendingAuthUser;
+    showAccountCreatedConfirmation(!!result?.session,email);
+  }catch(error){
+    authFlowLock=null;
+    pendingAuthUser=null;
+    pendingAuthEmail="";
+    setAuthMessage("signupMessage",error?.message||"Não foi possível criar a conta.","error");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Criar minha conta";
+  }
+}
 
-  btn.disabled=false;
-  btn.textContent="Criar minha conta";
+function finishAuthFlow(){
+  authFlowLock=null;
+  pendingAuthUser=null;
+  pendingAuthEmail="";
+}
 
-  if(error){
-    signupConfirmationActive=false;
-    pendingSignupUser=null;
-    setAuthMessage("signupMessage",error.message);
-    return;
+function showLoginSuccessConfirmation(user){
+  const title=$("loginSuccessTitle");
+  const message=$("loginSuccessMessage");
+  const action=$("loginSuccessAction");
+  if(!title||!message||!action){
+    // Fallback: nunca deixe o usuário preso se o modal não estiver no HTML.
+    const saved=user;
+    finishAuthFlow();
+    return startAuthenticatedSession(saved);
   }
 
-  pendingSignupUser=result?.user||result?.session?.user||pendingSignupUser;
-  showAccountCreatedConfirmation(!!result.session,email);
+  const name=user?.user_metadata?.full_name||user?.email?.split("@")[0]||"Aluno";
+  title.textContent="Login realizado com sucesso!";
+  message.textContent=`Bem-vindo, ${name}. Sua conta foi autenticada e seu cronograma está pronto para carregar.`;
+  action.textContent="Entrar no meu cronograma";
+  action.onclick=async()=>{
+    const saved=pendingAuthUser||user;
+    closeModals();
+    finishAuthFlow();
+    action.disabled=true;
+    try{
+      await startAuthenticatedSession(saved);
+      toast("Login realizado com sucesso.");
+    }catch(err){
+      console.error("Falha ao carregar cronograma após login:",err);
+      showAuth();
+      setAuthMessage("loginMessage","Login realizado, mas houve um erro ao carregar o cronograma. Recarregue a página e tente novamente.","error");
+    }finally{
+      action.disabled=false;
+    }
+  };
+  openModal("loginSuccessModal");
 }
 
 function showAccountCreatedConfirmation(hasSession,email){
@@ -820,42 +893,56 @@ function showAccountCreatedConfirmation(hasSession,email){
   const message=$("accountCreatedMessage");
   const note=$("accountCreatedNote");
   const action=$("accountCreatedAction");
-  if(!title||!message||!note||!action)return;
+  if(!title||!message||!note||!action){
+    finishAuthFlow();
+    setAuthMessage("signupMessage","Conta criada com sucesso.","success");
+    return;
+  }
 
   title.textContent="Conta criada com sucesso!";
   if(hasSession){
     message.textContent="Seu cadastro foi concluído e seu espaço acadêmico já está pronto para uso.";
-    note.textContent="Você já está conectado. Clique em Continuar para acessar o seu cronograma.";
-    action.textContent="Continuar para o cronograma";
+    note.textContent="Sua conta já está autenticada. Clique abaixo para abrir o cronograma.";
+    action.textContent="Acessar meu cronograma";
     action.onclick=async()=>{
-      const user=pendingSignupUser;
+      const saved=pendingAuthUser;
       closeModals();
-      signupConfirmationActive=false;
-      pendingSignupUser=null;
-      if(user)await startAuthenticatedSession(user);
-      else{
+      finishAuthFlow();
+      if(saved){
+        await startAuthenticatedSession(saved);
+        toast("Conta criada e login realizado com sucesso.");
+      }else{
         const {data:{session}}=await supabaseClient.auth.getSession();
-        if(session?.user)await startAuthenticatedSession(session.user);
-        else showAuth();
+        if(session?.user){
+          await startAuthenticatedSession(session.user);
+          toast("Conta criada e login realizado com sucesso.");
+        }else{
+          showAuth();
+          selectAuthTab("login");
+          $("loginEmail").value=email;
+          setAuthMessage("loginMessage","Conta criada com sucesso. Agora faça login.","success");
+        }
       }
     };
   }else{
-    message.textContent=`Enviamos uma confirmação para ${email}.`;
+    message.textContent=`Sua conta foi criada. Enviamos uma confirmação para ${email}.`;
     note.textContent="Abra seu e-mail, confirme o cadastro e depois volte para entrar na sua conta.";
     action.textContent="Ir para entrar";
     action.onclick=()=>{
       closeModals();
-      signupConfirmationActive=false;
-      pendingSignupUser=null;
+      finishAuthFlow();
       showAuth();
       selectAuthTab("login");
       $("loginEmail").value=email;
+      setAuthMessage("loginMessage","Conta criada com sucesso. Confirme seu e-mail e depois faça login.","success");
     };
   }
   openModal("accountCreatedModal");
 }
+
 async function logoutCurrentUser(){
   if(!supabaseClient)return;
+  finishAuthFlow();
   try{await writeCloudState()}catch(e){}
   await supabaseClient.auth.signOut();
   closeModals();

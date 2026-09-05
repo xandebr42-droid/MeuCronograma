@@ -1,11 +1,14 @@
-ATUALIZAÇÃO — CONFIRMAÇÃO DE CONTA CORRIGIDA
+MEU CRONOGRAMA — CORREÇÃO FINAL DO LOGIN (V20.2)
 
-Substitua no GitHub apenas:
-- index.html
-- app.js
-- styles.css
-- sw.js
+O QUE FOI CORRIGIDO
+- Modal de confirmação de conta agora aparece acima da tela de login.
+- Login mostra "Login realizado com sucesso!" antes de abrir o cronograma.
+- Cadastro mostra "Conta criada com sucesso!" e permite continuar.
+- O fluxo de cadastro não fica mais bloqueando tentativas posteriores de login.
+- O cronograma só é liberado depois de uma sessão válida do Supabase.
+- Eventos do Supabase não executam carregamento pesado dentro do callback de Auth.
+- Cache do Service Worker foi versionado novamente.
 
-NÃO substitua config.js.
-
-Correção: a criação da conta agora interrompe a entrada automática no cronograma até que a mensagem “Conta criada com sucesso!” seja exibida e o usuário clique em Continuar.
+IMPORTANTE
+Substitua no GitHub: index.html, app.js, styles.css e sw.js.
+NÃO substitua config.js se o seu já contém a Project URL e a Publishable Key corretas.
