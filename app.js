@@ -3,6 +3,7 @@ const CURRENT_DATE="2026-08-21";
 const FULL_PSICO_ITEMS=[];
 const demo={profile:{full_name:"Aluno",institution:"FARESI",course:"Psicologia",semester:"3º semestre",academic_period:"2026.2"},subjects:[],items:[],files:[]};
 let supabaseClient=null,currentUser=null,cloudReady=false,cloudSaveTimer=null;
+let signupConfirmationActive=false,pendingSignupUser=null;
 let data=structuredClone(demo),view="hoje",selectedSubject=null,ui={filter:"all",subject:"all",search:""},cursor=new Date(2026,7,1),pendingConfirm=null,lastImportedSubjectId=null;
 const $=id=>document.getElementById(id);const uid=(p="id")=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const subject=id=>data.subjects.find(s=>s.id===id);const typeColor=t=>({aula:"#2D7FF9",atividade:"#E9982D",prova:"#D9485F",seminario:"#9B59B6",evento:"#7D8798",tarefa:"#188A67"})[t]||"#6557DF";const fmt=d=>new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short"}).format(new Date(d+"T12:00:00"));
 
@@ -734,6 +735,10 @@ async function initializeAuth(){
 
   supabaseClient.auth.onAuthStateChange(async(event,session)=>{
     if(session?.user){
+      if(signupConfirmationActive){
+        pendingSignupUser=session.user;
+        return;
+      }
       if(!currentUser||currentUser.id!==session.user.id){
         await startAuthenticatedSession(session.user);
       }
@@ -787,6 +792,9 @@ async function submitSignup(event){
   btn.disabled=true;
   btn.textContent="Criando conta…";
 
+  signupConfirmationActive=true;
+  pendingSignupUser=null;
+
   const {data:result,error}=await supabaseClient.auth.signUp({
     email,
     password,
@@ -797,10 +805,13 @@ async function submitSignup(event){
   btn.textContent="Criar minha conta";
 
   if(error){
+    signupConfirmationActive=false;
+    pendingSignupUser=null;
     setAuthMessage("signupMessage",error.message);
     return;
   }
 
+  pendingSignupUser=result?.user||result?.session?.user||pendingSignupUser;
   showAccountCreatedConfirmation(!!result.session,email);
 }
 
@@ -816,12 +827,30 @@ function showAccountCreatedConfirmation(hasSession,email){
     message.textContent="Seu cadastro foi concluído e seu espaço acadêmico já está pronto para uso.";
     note.textContent="Você já está conectado. Clique em Continuar para acessar o seu cronograma.";
     action.textContent="Continuar para o cronograma";
-    action.onclick=()=>closeModals();
+    action.onclick=async()=>{
+      const user=pendingSignupUser;
+      closeModals();
+      signupConfirmationActive=false;
+      pendingSignupUser=null;
+      if(user)await startAuthenticatedSession(user);
+      else{
+        const {data:{session}}=await supabaseClient.auth.getSession();
+        if(session?.user)await startAuthenticatedSession(session.user);
+        else showAuth();
+      }
+    };
   }else{
     message.textContent=`Enviamos uma confirmação para ${email}.`;
     note.textContent="Abra seu e-mail, confirme o cadastro e depois volte para entrar na sua conta.";
     action.textContent="Ir para entrar";
-    action.onclick=()=>{closeModals();selectAuthTab("login");$("loginEmail").value=email;};
+    action.onclick=()=>{
+      closeModals();
+      signupConfirmationActive=false;
+      pendingSignupUser=null;
+      showAuth();
+      selectAuthTab("login");
+      $("loginEmail").value=email;
+    };
   }
   openModal("accountCreatedModal");
 }
