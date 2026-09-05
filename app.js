@@ -1,10 +1,9 @@
 const LEGACY_STORAGE_KEY="faresi_academico_local_v13_conclusao_celulas";const USER_STORAGE_BASE="meu_cronograma_v20_user";
-const CURRENT_DATE="2026-08-21";
 const FULL_PSICO_ITEMS=[];
 const demo={profile:{full_name:"Aluno",institution:"FARESI",course:"Psicologia",semester:"3º semestre",academic_period:"2026.2"},subjects:[],items:[],files:[]};
 let supabaseClient=null,currentUser=null,cloudReady=false,cloudSaveTimer=null;
 let authTransitioning=false,sessionStartPromise=null;
-let data=structuredClone(demo),view="hoje",selectedSubject=null,ui={filter:"all",subject:"all",search:""},cursor=new Date(2026,7,1),pendingConfirm=null,lastImportedSubjectId=null;
+let data=structuredClone(demo),view="hoje",selectedSubject=null,ui={filter:"all",subject:"all",search:""},cursor=(()=>{const now=new Date();return new Date(now.getFullYear(),now.getMonth(),1)})(),pendingConfirm=null,lastImportedSubjectId=null;
 const $=id=>document.getElementById(id);const uid=(p="id")=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const subject=id=>data.subjects.find(s=>s.id===id);const typeColor=t=>({aula:"#2D7FF9",atividade:"#E9982D",prova:"#D9485F",seminario:"#9B59B6",evento:"#7D8798",tarefa:"#188A67"})[t]||"#6557DF";const fmt=d=>new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short"}).format(new Date(d+"T12:00:00"));
 
 function migrate(d){
@@ -112,9 +111,8 @@ function sortAgenda(items){
   });
 }
 function currentDateIso(){
-  // CURRENT_DATE é fixado pela versão para que o cronograma acadêmico seja
-  // reproduzível no teste. Todas as telas usam exatamente a mesma referência.
-  return CURRENT_DATE;
+  // Usa a data local real do aparelho do aluno.
+  return localIso(new Date());
 }
 function weekBounds(iso=currentDateIso()){
   const base=dateFromIso(iso)||new Date();
@@ -980,7 +978,7 @@ async function createSubjectAndImport(){
   await readSelectedSubjectSchedule(file,created.id);
 }
 function requestDeleteSubject(id){const s=subject(id);if(!s)return;const count=data.items.filter(x=>x.subject_id===id).length;confirmAction("Apagar disciplina?",`A disciplina “${s.name}” possui ${count} item(ns) no cronograma. A confirmação apagará a disciplina e todas as células vinculadas a ela.`,()=>{data.subjects=data.subjects.filter(x=>x.id!==id);data.items=data.items.filter(x=>x.subject_id!==id);data.files=data.files.filter(x=>x.subject_id!==id);if(selectedSubject?.id===id){selectedSubject=null;view="disciplinas"}save();render();toast("Disciplina apagada.")})}
-function openNewItem(subjectId){$("itemId").value="";$("itemLesson").value="";$("itemDate").value=CURRENT_DATE;$("itemContent").value="";$("itemStrategy").value="";$("itemAssessment").value="";$("itemBibliography").value="";$("itemType").value="aula";$("itemPoints").value="";$("itemModalTitle").textContent="Nova célula";$("itemModal").dataset.subjectId=subjectId;$("deleteItem").classList.add("hidden");openModal("itemModal")}
+function openNewItem(subjectId){$("itemId").value="";$("itemLesson").value="";$("itemDate").value=currentDateIso();$("itemContent").value="";$("itemStrategy").value="";$("itemAssessment").value="";$("itemBibliography").value="";$("itemType").value="aula";$("itemPoints").value="";$("itemModalTitle").textContent="Nova célula";$("itemModal").dataset.subjectId=subjectId;$("deleteItem").classList.add("hidden");openModal("itemModal")}
 function openItemView(id){
   const x=data.items.find(i=>i.id===id);if(!x)return;
   const s=subject(x.subject_id);

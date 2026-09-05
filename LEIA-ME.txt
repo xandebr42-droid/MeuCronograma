@@ -1,18 +1,25 @@
-MEU CRONOGRAMA V20 — CORREÇÃO DE AUTENTICAÇÃO
+MEU CRONOGRAMA ACADÊMICO — V20 | DATA REAL AUTOMÁTICA
 
-Esta atualização corrige o travamento após login/cadastro.
+Atualização realizada sobre a versão de login destravado.
 
-Substitua no GitHub:
-- index.html
-- app.js
-- styles.css
-- sw.js
+ALTERAÇÕES:
+- A tela Hoje passa a usar a data local real do aparelho.
+- Minha Semana passa a calcular automaticamente a semana atual (segunda a domingo).
+- Este Mês passa a usar o mês atual.
+- O Calendário abre no mês atual ao iniciar o sistema.
+- Nova célula passa a preencher a data de hoje automaticamente.
+- Cache do Service Worker atualizado para v6 para evitar carregar a versão anterior.
 
 IMPORTANTE:
-- NÃO substitua seu config.js já configurado com Supabase.
-- O login agora mostra "Login realizado com sucesso!" e entra automaticamente no cronograma.
-- O cadastro com sessão imediata mostra "Conta criada com sucesso!" e entra automaticamente.
-- Se a confirmação de e-mail estiver habilitada no Supabase, a mensagem informa para confirmar o e-mail antes do login.
-- O Service Worker recebeu uma nova versão de cache para evitar JavaScript antigo.
+- NÃO substitua o seu config.js já configurado no GitHub.
+- Este pacote não inclui config.js.
+- Nenhuma alteração foi feita no banco de dados/Supabase.
+- Motor de importação, calendário, login, privacidade, disciplinas e demais funções foram preservados.
 
-O motor de importação, calendário, disciplinas e estrutura do banco foram preservados.
+Arquivos para substituir no GitHub:
+index.html
+app.js
+styles.css
+sw.js
+
+Após o commit, aguarde o GitHub Pages atualizar e recarregue o site com Ctrl+Shift+R.

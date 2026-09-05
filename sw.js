@@ -1,4 +1,4 @@
-const CACHE_NAME="meu-cronograma-v20-auth-v5";
+const CACHE_NAME="meu-cronograma-v20-auth-v6-data-real";
 const ASSETS=["./","./index.html","./styles.css","./app.js","./config.js","./manifest.webmanifest"];
 
 self.addEventListener("install",event=>{
