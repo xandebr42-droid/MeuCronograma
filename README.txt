@@ -1,74 +1,75 @@
-MEU CRONOGRAMA ACADÊMICO — V20.1
-LOGIN POR E-MAIL + CADASTRO/LOGIN AUTOMÁTICO COM GOOGLE
+MEU CRONOGRAMA ACADÊMICO — V20
+LOGIN INDIVIDUAL, PRIVACIDADE E SINCRONIZAÇÃO
 
-O QUE MUDOU
-A versão V20 foi preservada como base.
+POR QUE FOI NECESSÁRIO ADICIONAR UM BACKEND
+A versão anterior salvava dados no navegador. Isso era suficiente para testes,
+mas não cria contas privadas reais nem sincroniza celular e computador.
 
-Agora o aluno pode:
-- criar conta com e-mail e senha;
-- entrar com e-mail e senha;
-- OU clicar em "Continuar com Google";
-- no primeiro acesso com Google, a conta é criada automaticamente;
-- nos acessos seguintes, o mesmo botão entra na conta existente.
+Nesta versão foi adicionado Supabase Auth + banco Postgres com Row Level Security.
+
+RECURSOS
+- tela de login responsiva e visualmente renovada;
+- criação de conta;
+- login com e-mail e senha;
+- confirmação de senha;
+- mostrar/ocultar senha;
+- sessão persistente;
+- logout;
+- dados vinculados ao UUID do usuário;
+- cache local separado por usuário;
+- sincronização do estado com a nuvem;
+- funcionamento em desktop, tablet e celular.
 
 PRIVACIDADE
-Nada muda nas regras de segurança:
-- cada usuário recebe um UUID no Supabase Auth;
-- os dados ficam associados a esse UUID;
-- RLS continua impedindo que um usuário acesse o estado de outro.
+O arquivo supabase-setup.sql cria a tabela user_app_state e ativa RLS.
 
-CONFIGURAÇÃO DO GOOGLE NO SUPABASE
+As políticas só permitem acesso quando:
+auth.uid() = user_id
 
-1. Mantenha o Supabase configurado normalmente:
-   - execute supabase-setup.sql
-   - configure config.js com Project URL + anon public key
+Isso significa que a chave pública do navegador não dá a um aluno permissão para
+ler ou editar o estado de outro aluno.
 
-2. No Google Cloud Console:
-   - crie ou selecione um projeto;
-   - configure a tela de consentimento OAuth;
-   - crie credenciais OAuth 2.0 do tipo Web application.
+ARQUIVOS NOVOS
+- config.js
+- supabase-setup.sql
 
-3. No Supabase:
-   Authentication > Providers > Google
+CONFIGURAÇÃO EM 5 PASSOS
 
-   Copie o Callback URL informado pelo Supabase.
+1. Crie um projeto no Supabase.
 
-4. No Google Cloud Console:
-   adicione o Callback URL do Supabase em:
-   Authorized redirect URIs
+2. Abra SQL Editor e execute o conteúdo completo de:
+   supabase-setup.sql
 
-5. Copie do Google:
-   - Client ID
-   - Client Secret
+3. Abra Project Settings > API e copie:
+   - Project URL
+   - anon public key
 
-6. Cole no Supabase:
-   Authentication > Providers > Google
+4. Abra config.js e substitua:
+   COLE_AQUI_SUA_SUPABASE_URL
+   COLE_AQUI_SUA_SUPABASE_ANON_KEY
 
-7. Ative o provider Google.
+   NUNCA use a service_role key no navegador.
 
-8. Em Supabase > Authentication > URL Configuration:
-   Site URL:
-   coloque a URL do seu GitHub Pages.
+5. No Supabase > Authentication > URL Configuration:
+   - Site URL: coloque a URL publicada do Meu Cronograma;
+   - Redirect URLs: adicione a mesma URL.
 
-   Redirect URLs:
-   adicione também a URL do seu GitHub Pages.
+Depois, envie todos os arquivos atualizados para o GitHub Pages.
 
-EXPERIÊNCIA DO ALUNO
-- o aluno abre o site;
-- clica em "Continuar com Google";
-- escolhe a conta Google;
-- volta automaticamente para o Meu Cronograma;
-- seu espaço individual é criado ou carregado.
+OBSERVAÇÃO SOBRE E-MAIL
+Se a confirmação de e-mail estiver habilitada no Supabase, o aluno deverá
+confirmar o cadastro antes do primeiro login.
 
 PRESERVADO
-- login tradicional da V20;
-- criação de conta tradicional;
-- importação adaptativa;
+- motor adaptativo de importação;
 - DOCX/PDF;
-- calendário;
-- mobile;
-- PWA;
+- calendário completo e compacto;
+- interface mobile;
 - filtros;
 - progresso;
 - conclusão;
-- modo claro/escuro.
+- modo claro/escuro;
+- PWA básico.
+
+IMPORTANTE
+Esta V20 não usa apenas um “login visual”. O isolamento é aplicado no banco.

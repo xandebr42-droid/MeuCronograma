@@ -273,8 +273,6 @@ function bindAuthenticationUI(){
   $("loginForm").onsubmit=submitLogin;
   $("signupForm").onsubmit=submitSignup;
   $("logoutButton").onclick=logoutCurrentUser;
-  if($("googleLoginButton"))$("googleLoginButton").onclick=loginWithGoogle;
-  if($("googleSignupButton"))$("googleSignupButton").onclick=loginWithGoogle;
 
   document.querySelectorAll("[data-password-target]").forEach(button=>{
     button.onclick=()=>{
@@ -668,8 +666,6 @@ function hideAuth(){
 }
 function currentAccountName(){
   return currentUser?.user_metadata?.full_name||
-    currentUser?.user_metadata?.name||
-    currentUser?.user_metadata?.user_name||
     data.profile?.full_name||
     currentUser?.email?.split("@")[0]||
     "Aluno";
@@ -807,47 +803,6 @@ async function submitSignup(event){
     setAuthMessage("signupMessage","Conta criada com sucesso.","success");
   }else{
     setAuthMessage("signupMessage","Conta criada. Confirme o cadastro pelo e-mail e depois faça login.","success");
-  }
-}
-async function loginWithGoogle(){
-  if(!supabaseClient)return;
-
-  const buttons=["googleLoginButton","googleSignupButton"]
-    .map(id=>$(id))
-    .filter(Boolean);
-
-  buttons.forEach(btn=>{
-    btn.disabled=true;
-    const text=btn.querySelector("span:last-child");
-    if(text)text.textContent="Abrindo Google…";
-  });
-
-  const redirectTo=window.location.origin+window.location.pathname;
-
-  const {error}=await supabaseClient.auth.signInWithOAuth({
-    provider:"google",
-    options:{
-      redirectTo,
-      queryParams:{
-        access_type:"offline",
-        prompt:"consent"
-      }
-    }
-  });
-
-  if(error){
-    buttons.forEach(btn=>{
-      btn.disabled=false;
-    });
-    if($("googleLoginButton")){
-      const text=$("googleLoginButton").querySelector("span:last-child");
-      if(text)text.textContent="Continuar com Google";
-    }
-    if($("googleSignupButton")){
-      const text=$("googleSignupButton").querySelector("span:last-child");
-      if(text)text.textContent="Criar conta com Google";
-    }
-    setAuthMessage("loginMessage",error.message);
   }
 }
 async function logoutCurrentUser(){
