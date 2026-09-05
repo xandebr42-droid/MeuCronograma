@@ -1,0 +1,11 @@
+{
+  "name": "Meu Cronograma Acadêmico",
+  "short_name": "Meu Cronograma",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#6557df",
+  "lang": "pt-BR",
+  "description": "Organização acadêmica, cronogramas e calendário para estudantes."
+}

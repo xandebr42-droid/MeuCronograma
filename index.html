@@ -2,14 +2,131 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
   <title>Meu Cronograma Acadêmico</title>
+  <meta name="theme-color" content="#6557df">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Meu Cronograma">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+<div id="authScreen" class="auth-screen hidden">
+  <div class="auth-glow auth-glow-a"></div>
+  <div class="auth-glow auth-glow-b"></div>
+
+  <section class="auth-showcase">
+    <div class="auth-logo-pill">MEU CRONOGRAMA</div>
+    <div class="auth-showcase-copy">
+      <span>Seu semestre. Seu espaço.</span>
+      <h1>Organização acadêmica realmente pessoal.</h1>
+      <p>Entre na sua conta e encontre disciplinas, calendário, arquivos e progresso sem misturar seus dados com os de outros alunos.</p>
+    </div>
+
+    <div class="auth-feature-grid">
+      <div><i>01</i><b>Privado</b><small>Cada conta acessa apenas o próprio cronograma.</small></div>
+      <div><i>02</i><b>Sincronizado</b><small>Continue no celular ou computador.</small></div>
+      <div><i>03</i><b>Organizado</b><small>Importe seus arquivos e mantenha tudo em um só lugar.</small></div>
+    </div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-mobile-brand">Meu Cronograma</div>
+
+      <div class="auth-tabs">
+        <button id="loginTab" class="active" type="button">Entrar</button>
+        <button id="signupTab" type="button">Criar conta</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="auth-heading">
+          <span>ACESSO DO ALUNO</span>
+          <h2>Bem-vindo de volta</h2>
+          <p>Use seu e-mail e senha para acessar seu espaço acadêmico.</p>
+        </div>
+
+        <label>
+          <span>E-mail</span>
+          <input id="loginEmail" type="email" autocomplete="email" placeholder="nome@exemplo.com" required>
+        </label>
+
+        <label>
+          <span>Senha</span>
+          <div class="auth-password">
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+            <button type="button" data-password-target="loginPassword">Mostrar</button>
+          </div>
+        </label>
+
+        <button id="loginSubmit" class="auth-submit" type="submit">Entrar no meu cronograma</button>
+        <div class="auth-divider"><span>ou</span></div>
+
+        <button id="googleLoginButton" class="google-login-button" type="button">
+          <span class="google-g" aria-hidden="true">G</span>
+          <span>Continuar com Google</span>
+        </button>
+
+        <div id="loginMessage" class="auth-message hidden"></div>
+      </form>
+
+      <form id="signupForm" class="auth-form hidden">
+        <div class="auth-heading">
+          <span>NOVA CONTA</span>
+          <h2>Crie seu espaço acadêmico</h2>
+          <p>Cada conta possui um cronograma individual e isolado.</p>
+        </div>
+
+        <label>
+          <span>Nome completo</span>
+          <input id="signupName" type="text" autocomplete="name" placeholder="Seu nome completo" required>
+        </label>
+
+        <label>
+          <span>E-mail</span>
+          <input id="signupEmail" type="email" autocomplete="email" placeholder="nome@exemplo.com" required>
+        </label>
+
+        <label>
+          <span>Senha</span>
+          <div class="auth-password">
+            <input id="signupPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Mínimo de 6 caracteres" required>
+            <button type="button" data-password-target="signupPassword">Mostrar</button>
+          </div>
+        </label>
+
+        <label>
+          <span>Confirmar senha</span>
+          <div class="auth-password">
+            <input id="signupPasswordConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="Repita sua senha" required>
+            <button type="button" data-password-target="signupPasswordConfirm">Mostrar</button>
+          </div>
+        </label>
+
+        <button id="signupSubmit" class="auth-submit" type="submit">Criar minha conta</button>
+        <div class="auth-divider"><span>ou</span></div>
+
+        <button id="googleSignupButton" class="google-login-button" type="button">
+          <span class="google-g" aria-hidden="true">G</span>
+          <span>Criar conta com Google</span>
+        </button>
+
+        <div id="signupMessage" class="auth-message hidden"></div>
+      </form>
+
+      <div class="auth-security-note">
+        <span>🔒</span>
+        <p>O banco usa regras por usuário. Um aluno não recebe permissão para consultar ou editar os dados de outro.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
 <div id="app"></div>
 <div id="modalBackdrop" class="backdrop hidden"></div>
 
@@ -22,7 +139,28 @@
     <label><span>Carga horária</span><input id="subjectWorkload" placeholder="Ex.: 60h"></label>
     <label><span>Cor</span><select id="subjectColor"><option value="#6C5CE7">Roxo</option><option value="#2D7FF9">Azul</option><option value="#00A896">Verde</option><option value="#F0A23B">Laranja</option><option value="#E05263">Vermelho</option></select></label>
   </div>
-  <div class="modal-actions"><button class="ghost" data-close>Cancelar</button><button id="saveSubject" class="primary">Salvar disciplina</button></div>
+  <div class="subject-file-section" id="subjectFileSection">
+    <div class="subject-file-heading">
+      <div>
+        <b>Cronograma da disciplina</b>
+        <span>Selecione o arquivo agora para criar a disciplina e organizar as células no mesmo fluxo.</span>
+      </div>
+      <span class="optional-badge">RECOMENDADO</span>
+    </div>
+    <label class="upload-box subject-upload-box">
+      <input type="file" id="subjectScheduleFile" accept=".pdf,.docx,.pptx,.xlsx,.xls,.csv,.txt">
+      <div class="upload-icon">⇧</div>
+      <strong id="subjectSelectedFileName">Selecionar cronograma</strong>
+      <span>PDF, DOCX, PPTX, Excel, CSV ou TXT</span>
+    </label>
+  </div>
+  <div class="modal-actions subject-modal-actions">
+    <button class="ghost" data-close>Cancelar</button>
+    <div class="subject-action-group">
+      <button id="saveSubject" class="ghost strong">Salvar disciplina</button>
+      <button id="saveAndImportSubject" class="primary">Criar disciplina e importar</button>
+    </div>
+  </div>
 </div>
 
 
@@ -80,6 +218,53 @@
   <div class="modal-actions"><button class="ghost" data-close>Cancelar</button><button id="confirmAction" class="danger">Sim, apagar</button></div>
 </div>
 
+
+<div id="importSuccessModal" class="modal small hidden">
+  <div class="modal-head">
+    <div>
+      <span class="eyebrow success-text">IMPORTAÇÃO CONCLUÍDA</span>
+      <h3>Seu cronograma foi importado</h3>
+    </div>
+    <button class="icon-btn" data-close>×</button>
+  </div>
+  <div class="modal-body">
+    <div class="import-success-icon">✓</div>
+    <p class="confirm-text" id="importSuccessMessage">As células foram adicionadas corretamente.</p>
+    <div class="success-box">As células já estão disponíveis em Hoje, Minha Semana, Este Mês, Meu Semestre, Calendário e na disciplina.</div>
+  </div>
+  <div class="modal-actions">
+    <button class="ghost" data-close>Fechar</button>
+    <button id="openImportedSubject" class="primary">Abrir disciplina</button>
+  </div>
+</div>
+
+
+<div id="accountModal" class="modal small hidden">
+  <div class="modal-head">
+    <div>
+      <span class="eyebrow">MINHA CONTA</span>
+      <h3 id="accountModalName">Aluno</h3>
+    </div>
+    <button class="icon-btn" data-close>×</button>
+  </div>
+  <div class="modal-body">
+    <div class="account-card">
+      <div class="account-avatar" id="accountAvatar">A</div>
+      <div class="account-copy">
+        <b id="accountFullName">Aluno</b>
+        <span id="accountEmail">email@exemplo.com</span>
+      </div>
+    </div>
+    <div class="account-private-note">
+      <b>Espaço individual</b>
+      <p>Os dados desta sessão pertencem somente a este usuário autenticado.</p>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button id="logoutButton" class="logout-button" type="button">Sair da conta</button>
+  </div>
+</div>
+
 <div id="profileModal" class="modal hidden">
   <div class="modal-head"><div><span class="eyebrow">PERFIL</span><h3>Editar perfil</h3></div><button class="icon-btn" data-close>×</button></div>
   <div class="modal-body form-grid"><label><span>Nome</span><input id="profileName"></label><label><span>Instituição</span><input id="profileInstitution"></label><label><span>Curso</span><input id="profileCourse"></label><label><span>Semestre</span><input id="profileSemester"></label><label><span>Período acadêmico</span><input id="profilePeriod"></label></div>
@@ -91,6 +276,8 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
