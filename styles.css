@@ -1133,3 +1133,9 @@ html[data-theme="dark"] .mobilebar{
   .auth-card{padding:18px;border-radius:19px}
   .auth-heading h2{font-size:22px}
 }
+
+/* Confirmação de criação de conta */
+.account-created-body{text-align:center}
+.account-created-body .confirm-text{font-size:14px;margin:0 auto;max-width:360px}
+#accountCreatedModal .modal-actions{justify-content:center}
+#accountCreatedModal .modal-actions .primary{min-width:220px}

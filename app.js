@@ -801,11 +801,29 @@ async function submitSignup(event){
     return;
   }
 
-  if(result.session){
-    setAuthMessage("signupMessage","Conta criada com sucesso.","success");
+  showAccountCreatedConfirmation(!!result.session,email);
+}
+
+function showAccountCreatedConfirmation(hasSession,email){
+  const title=$("accountCreatedTitle");
+  const message=$("accountCreatedMessage");
+  const note=$("accountCreatedNote");
+  const action=$("accountCreatedAction");
+  if(!title||!message||!note||!action)return;
+
+  title.textContent="Conta criada com sucesso!";
+  if(hasSession){
+    message.textContent="Seu cadastro foi concluído e seu espaço acadêmico já está pronto para uso.";
+    note.textContent="Você já está conectado. Clique em Continuar para acessar o seu cronograma.";
+    action.textContent="Continuar para o cronograma";
+    action.onclick=()=>closeModals();
   }else{
-    setAuthMessage("signupMessage","Conta criada. Confirme o cadastro pelo e-mail e depois faça login.","success");
+    message.textContent=`Enviamos uma confirmação para ${email}.`;
+    note.textContent="Abra seu e-mail, confirme o cadastro e depois volte para entrar na sua conta.";
+    action.textContent="Ir para entrar";
+    action.onclick=()=>{closeModals();selectAuthTab("login");$("loginEmail").value=email;};
   }
+  openModal("accountCreatedModal");
 }
 async function logoutCurrentUser(){
   if(!supabaseClient)return;

@@ -1,0 +1,15 @@
+ATUALIZAÇÃO — CONFIRMAÇÃO DE CRIAÇÃO DE CONTA
+
+Substitua no GitHub apenas estes arquivos:
+- index.html
+- app.js
+- styles.css
+- sw.js
+
+IMPORTANTE:
+NÃO substitua o seu config.js já configurado com a URL e a Publishable Key do Supabase.
+
+Novo comportamento:
+- após criar a conta, aparece um modal de confirmação;
+- se o Supabase permitir login imediato, o botão leva ao cronograma;
+- se a confirmação de e-mail estiver habilitada, a mensagem orienta o aluno a confirmar o e-mail e depois entrar.
