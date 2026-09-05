@@ -266,32 +266,7 @@ function requestToggleComplete(id){
     confirmAction(
       "Reabrir esta célula?",
       `A célula de “${name}” está marcada como concluída. Deseja retirar a conclusão e deixá-la novamente como pendente?`,
-      ()=>{x.completed=false;
-function bindAuthenticationUI(){
-  $("loginTab").onclick=()=>selectAuthTab("login");
-  $("signupTab").onclick=()=>selectAuthTab("signup");
-  $("loginForm").onsubmit=submitLogin;
-  $("signupForm").onsubmit=submitSignup;
-  $("logoutButton").onclick=logoutCurrentUser;
-
-  document.querySelectorAll("[data-password-target]").forEach(button=>{
-    button.onclick=()=>{
-      const input=$(button.dataset.passwordTarget);
-      if(!input)return;
-      const reveal=input.type==="password";
-      input.type=reveal?"text":"password";
-      button.textContent=reveal?"Ocultar":"Mostrar";
-    };
-  });
-
-  document.addEventListener("click",event=>{
-    if(event.target.closest("[data-account]")){
-      updateAccountUI();
-      openModal("accountModal");
-    }
-  });
-}
-bindAuthenticationUI();initializeAuth();toast("Célula marcada como pendente.");},
+      ()=>{x.completed=false;save();render();toast("Célula marcada como pendente.");},
       "Sim, reabrir"
     );
   }else{
@@ -658,10 +633,12 @@ function selectAuthTab(tab){
 }
 function showAuth(){
   $("authScreen").classList.remove("hidden");
+  $("app").classList.add("hidden");
   document.body.classList.add("auth-active");
 }
 function hideAuth(){
   $("authScreen").classList.add("hidden");
+  $("app").classList.remove("hidden");
   document.body.classList.remove("auth-active");
 }
 function currentAccountName(){
@@ -709,6 +686,31 @@ async function startAuthenticatedSession(user){
   render();
   updateAccountUI();
 }
+function bindAuthenticationUI(){
+  $("loginTab").onclick=()=>selectAuthTab("login");
+  $("signupTab").onclick=()=>selectAuthTab("signup");
+  $("loginForm").onsubmit=submitLogin;
+  $("signupForm").onsubmit=submitSignup;
+  $("logoutButton").onclick=logoutCurrentUser;
+
+  document.querySelectorAll("[data-password-target]").forEach(button=>{
+    button.onclick=()=>{
+      const input=$(button.dataset.passwordTarget);
+      if(!input)return;
+      const reveal=input.type==="password";
+      input.type=reveal?"text":"password";
+      button.textContent=reveal?"Ocultar":"Mostrar";
+    };
+  });
+
+  document.addEventListener("click",event=>{
+    if(event.target.closest("[data-account]")){
+      updateAccountUI();
+      openModal("accountModal");
+    }
+  });
+}
+
 async function initializeAuth(){
   if(!supabaseIsConfigured()){
     showAuth();
@@ -1951,7 +1953,15 @@ $("subjectScheduleFile").onchange=e=>{
     const guessed=guessSubjectName(f.name);
     if(guessed)$("subjectName").value=guessed;
   }
-};$("saveSubject").onclick=saveSubject;$("saveItem").onclick=saveItem;$("deleteItem").onclick=()=>{const id=$("itemId").value;if(id){closeModals();requestDeleteItem(id)}};$("saveProfile").onclick=saveProfile;$("analyzeFile").onclick=analyzeFile;$("importMode").onchange=syncImportMode;$("scheduleFile").onchange=e=>{const f=e.target.files[0];$("selectedFileName").textContent=f?f.name:"Selecione o arquivo do cronograma";if(f&&!$("newImportSubjectName").value)$("newImportSubjectName").value=guessSubjectName(f.name)};$("confirmAction").onclick=()=>{const fn=pendingConfirm;closeModals();if(fn)fn()};save();render();
+};$("saveSubject").onclick=saveSubject;$("saveItem").onclick=saveItem;$("deleteItem").onclick=()=>{const id=$("itemId").value;if(id){closeModals();requestDeleteItem(id)}};$("saveProfile").onclick=saveProfile;$("analyzeFile").onclick=analyzeFile;$("importMode").onchange=syncImportMode;$("scheduleFile").onchange=e=>{const f=e.target.files[0];$("selectedFileName").textContent=f?f.name:"Selecione o arquivo do cronograma";if(f&&!$("newImportSubjectName").value)$("newImportSubjectName").value=guessSubjectName(f.name)};$("confirmAction").onclick=()=>{const fn=pendingConfirm;closeModals();if(fn)fn()};
+
+// A aplicação só é liberada depois que o Supabase confirmar uma sessão válida.
+bindAuthenticationUI();
+initializeAuth().catch(err=>{
+  console.error("Falha ao inicializar autenticação:",err);
+  showAuth();
+  setAuthMessage("loginMessage","Não foi possível validar a sessão. Verifique a configuração do Supabase e tente novamente.","error");
+});
 
 if(window.matchMedia){
   const mq=window.matchMedia("(prefers-color-scheme: dark)");
