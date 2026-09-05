@@ -1,14 +1,18 @@
-MEU CRONOGRAMA — CORREÇÃO FINAL DO LOGIN (V20.2)
+MEU CRONOGRAMA V20 — CORREÇÃO DE AUTENTICAÇÃO
 
-O QUE FOI CORRIGIDO
-- Modal de confirmação de conta agora aparece acima da tela de login.
-- Login mostra "Login realizado com sucesso!" antes de abrir o cronograma.
-- Cadastro mostra "Conta criada com sucesso!" e permite continuar.
-- O fluxo de cadastro não fica mais bloqueando tentativas posteriores de login.
-- O cronograma só é liberado depois de uma sessão válida do Supabase.
-- Eventos do Supabase não executam carregamento pesado dentro do callback de Auth.
-- Cache do Service Worker foi versionado novamente.
+Esta atualização corrige o travamento após login/cadastro.
 
-IMPORTANTE
-Substitua no GitHub: index.html, app.js, styles.css e sw.js.
-NÃO substitua config.js se o seu já contém a Project URL e a Publishable Key corretas.
+Substitua no GitHub:
+- index.html
+- app.js
+- styles.css
+- sw.js
+
+IMPORTANTE:
+- NÃO substitua seu config.js já configurado com Supabase.
+- O login agora mostra "Login realizado com sucesso!" e entra automaticamente no cronograma.
+- O cadastro com sessão imediata mostra "Conta criada com sucesso!" e entra automaticamente.
+- Se a confirmação de e-mail estiver habilitada no Supabase, a mensagem informa para confirmar o e-mail antes do login.
+- O Service Worker recebeu uma nova versão de cache para evitar JavaScript antigo.
+
+O motor de importação, calendário, disciplinas e estrutura do banco foram preservados.
